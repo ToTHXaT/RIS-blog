@@ -123,8 +123,8 @@ class ArticleManager:
             raise HTTPException(400, "Bad request")
 
     @classmethod
-    async def get_my_articles(cls, conn: connection, user_id: int, *, limit: int = 10, offset: int = 0) -> List[
-        ArticleInfo]:
+    async def get_my_articles(cls, conn: connection, user_id: int, *,
+                              limit: int = 10, offset: int = 0) -> List[ArticleInfo]:
         try:
             articles = await conn.fetch('''select to_json(r) from ( select art.*,
             json_build_object(
@@ -170,7 +170,7 @@ class ArticleManager:
                 join public."User" usr on art.user_id = usr.id
                 join public."Article_Tag" a_t on art.id = a_t.article_id
                 join public."Tag" tg on a_t.tag_id = tg.id
-            group by art.id, usr.id
+            group by art.id, usr.id, usr.full_name, usr.username, usr.is_active, usr.is_super, usr.registered
             order by art.modified desc
             limit $1 offset $2) r''', limit, offset)
 
@@ -179,5 +179,5 @@ class ArticleManager:
             l = [json.loads(i['to_json']) for i in articles]
 
             return l
-        except:
+        except Exception as e:
             raise HTTPException(400, 'Nothin here')

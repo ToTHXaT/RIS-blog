@@ -5,6 +5,8 @@ from random import randint
 
 from asyncpg import connection
 from .managers.article_manager import ArticleManager
+from .managers.comment_manager import CommentManager
+from .schemas.comment_schema import CommentInfo, CommentUpdate, CommentCreation
 
 from src.schemas.article_schema import ArticleCreation, ArticleUpdate, ArticleInfo
 from src.schemas.user_schema import UserInfo
@@ -12,15 +14,6 @@ from .auth import get_current_user
 
 
 api = APIRouter()
-
-
-articles = [
-    {'id': 1, 'title': 'hello',  'body': 'hello ob', 'pub_date': datetime.now()},
-    {'id': 2, 'title': 'hello2', 'body': 'hello ob', 'pub_date': datetime.now()},
-    {'id': 3, 'title': 'hello3', 'body': 'hello ob', 'pub_date': datetime.now()},
-    {'id': 4, 'title': 'hello4', 'body': 'hello ob', 'pub_date': datetime.now()},
-    {'id': 5, 'title': 'hello5', 'body': 'hello ob', 'pub_date': datetime.now()},
-]
 
 
 async def random_number() -> int:
@@ -66,11 +59,41 @@ async def upd_article(request: Request, article_upd: ArticleUpdate, user: UserIn
         raise HTTPException(400, 'Permission denied')
 
 
-
-@api.post("/article/del", response_model=int)
+@api.delete("/article/del", response_model=int)
 async def del_article(article_id: int, request: Request, user: UserInfo = Depends(get_current_user)):
     article = await ArticleManager.get_article_by_id(request.state.db, article_id)
     if article.author.id == user.id:
         return await ArticleManager.del_article(request.state.db, article_id)
     else:
         raise HTTPException(400, 'Permissoin denied')
+
+
+@api.get("/comments/get", response_model=List[CommentInfo])
+async def get_comments(request: Request, article_id: int, limit: Optional[int] = 10, offset: Optional[int] = 0):
+    return await CommentManager.get_comments_of_article(request.state.db, article_id)
+
+
+@api.put("/comment/upd", response_model=CommentInfo)
+async def upd_articles_comment(request: Request, comment_upd: CommentUpdate, user: UserInfo = Depends(get_current_user)):
+    comment = await CommentManager.get_comment_by_id(request.state.db, comment_upd.id)
+
+    if comment.user.id == user.id:
+        return await CommentManager.upd_comment_of_article(request.state.db, comment_upd)
+    else:
+        raise HTTPException(400, 'Permission denied')
+
+
+@api.post("/comment/add", response_model=CommentInfo)
+async def get_comments(request: Request, comment: CommentCreation, user: UserInfo = Depends(get_current_user)):
+    return await CommentManager.add_comment(request.state.db, comment, user)
+
+
+@api.delete("/comment/del", response_model=int)
+async def del_comment(request: Request, comment_id: int, user: UserInfo = Depends(get_current_user)):
+    comment = await CommentManager.get_comment_by_id(request.state.db, comment_id)
+
+    if comment.user.id == user.id:
+        return await CommentManager.del_comment(request.state.db, comment_id)
+    else:
+        raise HTTPException(400, 'Permission denied')
+

@@ -4,7 +4,7 @@ from fastapi.security.api_key import APIKeyCookie
 from fastapi import Security, APIRouter, Response, Request, Depends
 from fastapi.exceptions import HTTPException
 
-from src.schemas.user_schema import UserInfo, UserAuth, UserCreation
+from src.schemas.user_schema import UserInfo, UserAuth, UserCreation, User
 
 from .managers.user_manager import UserManager
 from .managers.session_manager import SessionManager
@@ -61,6 +61,10 @@ async def logout(response: Response, request: Request, token: Optional[str] = Se
     response.delete_cookie(key='token')
     return {'success': True}
 
+
+@auth.get('/check_username')
+async def check_username(request: Request, username: str):
+    return {'is_free': await UserManager.check_username(request.state.db, username)}
 
 
 

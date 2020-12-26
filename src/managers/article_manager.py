@@ -141,7 +141,7 @@ class ArticleManager:
                 join public."Article_Tag" a_t on art.id = a_t.article_id
                 join public."Tag" tg on a_t.tag_id = tg.id
                 where art.user_id = $1
-            group by art.id, usr.id
+            group by art.id, usr.id, usr.full_name, usr.username, usr.is_active, usr.is_super, usr.registered
             order by art.modified desc
             limit $2 offset $3) r''', user_id, limit, offset)
 
@@ -150,7 +150,8 @@ class ArticleManager:
             l = [json.loads(i['to_json']) for i in articles]
 
             return l
-        except:
+        except Exception as e:
+            raise e
             raise HTTPException(400, 'Nothin here')
 
     @classmethod
@@ -181,3 +182,14 @@ class ArticleManager:
             return l
         except Exception as e:
             raise HTTPException(400, 'Nothin here')
+
+    @classmethod
+    async def get_tags(cls, conn: connection):
+        try:
+            tags = await conn.fetch('select name from public."Tag"')
+
+            tags = [i['name'] for i in tags]
+
+            return tags
+        except:
+            raise HTTPException(400, "Cant fetch tags")

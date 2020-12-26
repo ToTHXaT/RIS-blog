@@ -26,6 +26,11 @@ async def index(request: Request):
     return None
 
 
+@api.get("/tags/get", response_model=List[str])
+async def get_tags(request: Request):
+    return await ArticleManager.get_tags(request.state.db)
+
+
 @api.get("/articles/get", response_model=List[ArticleInfo])
 async def get_articles(request: Request, limit: Optional[int] = 10, offset: Optional[int] = 0):
     return await ArticleManager.get_articles(request.state.db, limit=limit, offset=offset)

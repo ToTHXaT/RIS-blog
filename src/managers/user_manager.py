@@ -64,12 +64,15 @@ class UserManager:
         except:
             return False
 
-
     @classmethod
     async def authenticate(cls, conn: connection, _user: UserAuth) -> bool:
         try:
             user = await conn.fetchrow('select * from public."User" where username = $1', _user.username)
+            print(_user)
         except:
+            raise HTTPException(400, 'User not found')
+
+        if user is None:
             raise HTTPException(400, 'User not found')
 
         try:

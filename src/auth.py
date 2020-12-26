@@ -22,12 +22,12 @@ async def get_current_user(request: Request, token: Optional[str] = Security(api
 auth = APIRouter()
 
 
-@auth.get('/me')
+@auth.get('/me', response_model=UserInfo)
 async def me(user: UserInfo = Depends(get_current_user)):
-    return user.dict()
+    return user
 
 
-@auth.post('/login')
+@auth.post('/login', response_model=UserInfo)
 async def login(user_auth: UserAuth, response: Response, request: Request):
 
     if not await UserManager.authenticate(request.state.db, user_auth):
@@ -44,6 +44,11 @@ async def login(user_auth: UserAuth, response: Response, request: Request):
 
 @auth.post('/signup')
 async def signup(request: Request, user_creation: UserCreation, response: Response):
+
+    is_free = await UserManager.check_username(request.state.db, user_creation.username)
+
+    if not is_free:
+        raise HTTPException(400, 'Username is already occupied')
 
     user = await UserManager.create(request.state.db, user_creation)
 

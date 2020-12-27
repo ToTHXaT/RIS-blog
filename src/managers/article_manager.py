@@ -151,7 +151,18 @@ class ArticleManager:
 
             return l
         except Exception as e:
-            raise e
+            raise HTTPException(400, 'Nothin here')
+
+    @classmethod
+    async def get_my_articles__len(cls, conn: connection, user_id: int) -> int:
+        try:
+            articles_count = await conn.fetchval('''select count(*)
+                from public."Article" art
+                join public."User" usr on art.user_id = usr.id
+                where art.user_id = $1''', user_id)
+
+            return articles_count
+        except Exception as e:
             raise HTTPException(400, 'Nothin here')
 
     @classmethod
@@ -180,6 +191,17 @@ class ArticleManager:
             l = [json.loads(i['to_json']) for i in articles]
 
             return l
+        except Exception as e:
+            raise HTTPException(400, 'Nothin here')
+
+    @classmethod
+    async def get_articles__len(cls, conn: connection) -> int:
+        try:
+            articles_count = await conn.fetchval('''select count(*)
+                from public."Article" art
+                join public."User" usr on art.user_id = usr.id''')
+
+            return articles_count
         except Exception as e:
             raise HTTPException(400, 'Nothin here')
 

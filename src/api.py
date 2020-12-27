@@ -36,11 +36,21 @@ async def get_articles(request: Request, limit: Optional[int] = 10, offset: Opti
     return await ArticleManager.get_articles(request.state.db, limit=limit, offset=offset)
 
 
+@api.get("/articles/len", response_model=int)
+async def get_articles__len(request: Request):
+    return await ArticleManager.get_articles__len(request.state.db)
+
+
 @api.get("/articles/get/my", response_model=List[ArticleInfo])
 async def get_articles(request: Request,
                        user: UserInfo = Depends(get_current_user),
                        limit: Optional[int] = 10, offset: Optional[int] = 0):
     return await ArticleManager.get_my_articles(request.state.db, user.id, limit=limit, offset=offset)
+
+
+@api.get("/articles/len/my", response_model=int)
+async def get_articles(request: Request, user: UserInfo = Depends(get_current_user)):
+    return await ArticleManager.get_my_articles__len(request.state.db, user.id)
 
 
 @api.get("/article/get/", response_model=ArticleInfo)
@@ -75,7 +85,7 @@ async def del_article(article_id: int, request: Request, user: UserInfo = Depend
 
 @api.get("/comments/get", response_model=List[CommentInfo])
 async def get_comments(request: Request, article_id: int, limit: Optional[int] = 10, offset: Optional[int] = 0):
-    return await CommentManager.get_comments_of_article(request.state.db, article_id)
+    return await CommentManager.get_comments_of_article(request.state.db, article_id, limit=limit, offset=offset)
 
 
 @api.put("/comment/upd", response_model=CommentInfo)

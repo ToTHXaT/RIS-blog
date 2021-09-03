@@ -25,7 +25,7 @@ app.add_middleware(
 
 
 pool: asyncpg.pool
-
+l = 1
 
 @app.on_event('startup')
 async def set_pools():
